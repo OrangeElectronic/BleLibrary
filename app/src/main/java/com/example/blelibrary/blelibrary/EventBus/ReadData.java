@@ -1,8 +1,8 @@
-package com.example.blelibrary.EventBus;
+package com.example.blelibrary.blelibrary.EventBus;
 
-public class RebackData {
+public class ReadData {
     byte[] reback=new byte[0];
-    public RebackData(byte[] reback){
+    public ReadData(byte[] reback){
         this.reback=reback;
     }
 

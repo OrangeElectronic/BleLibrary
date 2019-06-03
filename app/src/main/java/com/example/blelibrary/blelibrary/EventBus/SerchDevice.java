@@ -1,8 +1,6 @@
-package com.example.blelibrary.EventBus;
+package com.example.blelibrary.blelibrary.EventBus;
 
 import android.bluetooth.BluetoothDevice;
-
-import java.util.ArrayList;
 
 public class SerchDevice {
     private BluetoothDevice mLeDevices;

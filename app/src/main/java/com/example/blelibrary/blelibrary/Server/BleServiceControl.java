@@ -1,4 +1,4 @@
-package com.example.blelibrary.Server;
+package com.example.blelibrary.blelibrary.Server;
 
 import android.app.Activity;
 import android.bluetooth.BluetoothGattCharacteristic;
@@ -21,12 +21,14 @@ import java.util.UUID;
 
 import static android.content.ContentValues.TAG;
 import static android.content.Context.BIND_AUTO_CREATE;
-import static com.example.blelibrary.Server.BluetoothLeService.EXTRA_DATA;
-import static com.example.blelibrary.tool.FormatConvert.StringHexToByte;
+import static com.example.blelibrary.blelibrary.Server.BluetoothLeService.EXTRA_DATA;
+import static com.example.blelibrary.blelibrary.tool.FormatConvert.StringHexToByte;
 
 public class BleServiceControl {
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
+    private final UUID RXUUID=UUID.fromString("00008D81-0000-1000-8000-00805F9B34FB");
+    private final UUID TXUUID=UUID.fromString("00008D82-0000-1000-8000-00805F9B34FB");
     private BluetoothLeService mBluetoothLeService;
     private ArrayList<BluetoothGattCharacteristic> mGattCharacteristics =
             new ArrayList<>();
@@ -50,11 +52,11 @@ public class BleServiceControl {
     };
     public void connect(final String mDeviceAddress, Activity activity){
         this.mDeviceAddress=mDeviceAddress;
+        if(mBluetoothLeService!=null){ mBluetoothLeService.connect(mDeviceAddress);}
         if(!EventBus.getDefault().isRegistered(activity)){EventBus.getDefault().register(activity);}
         activity.registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         Intent gattServiceIntent = new Intent(activity, BluetoothLeService.class);
         activity.bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
-
     }
     private void displayGattServices(List<BluetoothGattService> gattServices) {
         if (gattServices == null) return;
@@ -82,6 +84,9 @@ public class BleServiceControl {
             // Loops through available Characteristics.
             for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
                 mGattCharacteristics.add(gattCharacteristic);
+                if(RXUUID.equals(gattCharacteristic.getUuid())){
+                    mBluetoothLeService.setCharacteristicNotification(gattCharacteristic, true);
+                }
                 HashMap<String, String> currentCharaData = new HashMap<String, String>();
                 uuid = gattCharacteristic.getUuid().toString();
                 currentCharaData.put(
@@ -120,12 +125,26 @@ Log.w("s","連線");
             }
         }
     }
-    public boolean WriteCmd(String write,String uuid){
+  public void WriteArray(final ArrayList<String> a){
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for(final String q:a){
+                    WriteCmd(q);
+                        try {
+                            Thread.currentThread().sleep(200);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }).start();
+  }
+    public boolean WriteCmd(String write){
 for(BluetoothGattCharacteristic a:mGattCharacteristics){
     Log.w("char",""+a.getUuid());
-    if(UUID.fromString(uuid).equals(a.getUuid())){
+    if(TXUUID.equals(a.getUuid())){
         mNotifyCharacteristic=a;
-        mBluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, true);
         mNotifyCharacteristic.setValue(StringHexToByte(write));
         mBluetoothLeService.writeCharacteristic(mNotifyCharacteristic);
         return true;
@@ -133,6 +152,9 @@ for(BluetoothGattCharacteristic a:mGattCharacteristics){
 }
 return false;
     }
+    public void disconnect(){
+        if(mBluetoothLeService!=null){mBluetoothLeService.disconnect();}
+        }
     private static IntentFilter makeGattUpdateIntentFilter() {
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);

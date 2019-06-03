@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.blelibrary.Server;
+package com.example.blelibrary.blelibrary.Server;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
@@ -32,9 +32,10 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
-import com.example.blelibrary.EventBus.ReadData;
-import com.example.blelibrary.EventBus.RebackData;
-import com.example.blelibrary.EventBus.WriteData;
+import com.example.blelibrary.blelibrary.EventBus.ConnectState;
+import com.example.blelibrary.blelibrary.EventBus.ReadData;
+import com.example.blelibrary.blelibrary.EventBus.RebackData;
+import com.example.blelibrary.blelibrary.EventBus.WriteData;
 
 import org.greenrobot.eventbus.EventBus;
 
@@ -82,6 +83,7 @@ public class BluetoothLeService extends Service {
                 intentAction = ACTION_GATT_CONNECTED;
                 mConnectionState = STATE_CONNECTED;
                 broadcastUpdate(intentAction);
+                EventBus.getDefault().post(new ConnectState(true));
                 Log.i(TAG, "Connected to GATT server.");
                 // Attempts to discover services after successful connection.
                 Log.i(TAG, "Attempting to start service discovery:" +
@@ -91,6 +93,7 @@ public class BluetoothLeService extends Service {
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
                 Log.i(TAG, "Disconnected from GATT server.");
+                EventBus.getDefault().post(new ConnectState(false));
                 broadcastUpdate(intentAction);
             }
         }
@@ -214,7 +217,9 @@ public void onCharacteristicWrite(BluetoothGatt gatt,BluetoothGattCharacteristic
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.");
             return false;
         }
-
+        if(mBluetoothGatt!=null){
+            disconnect();
+        }
         // Previously connected device.  Try to reconnect.
         if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress)
                 && mBluetoothGatt != null) {
@@ -288,19 +293,15 @@ public void onCharacteristicWrite(BluetoothGatt gatt,BluetoothGattCharacteristic
      * @param characteristic Characteristic to act on.
      * @param enabled If true, enable notification.  False otherwise.
      */
-boolean descripe=true;
 
     public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic,
                                               boolean enabled) {
-        if(descripe){
+
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             Log.w(TAG, "BluetoothAdapter not initialized");
             return;
         }
         mBluetoothGatt.setCharacteristicNotification(characteristic, true);
-
-  if((characteristic.getUuid()).equals(UUID.fromString("00008d81-0000-1000-8000-00805f9b34fb"))){
-
           Log.w("設定descripe", ""+characteristic.getUuid());
           BluetoothGattDescriptor descriptor= characteristic.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"));
           if(descriptor!=null){
@@ -310,9 +311,7 @@ boolean descripe=true;
               descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
               mBluetoothGatt.writeDescriptor(descriptor);
           }
-          descripe=false;
-      }
-  }
+
     }
 
     /**

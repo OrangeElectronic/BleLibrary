@@ -1,4 +1,4 @@
-package com.example.blelibrary.EventBus;
+package com.example.blelibrary.blelibrary.EventBus;
 
 public class WriteData {
     byte[]data=new byte[10];

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.blelibrary.Server;
+package com.example.blelibrary.blelibrary.Server;
 
 import java.util.HashMap;
 

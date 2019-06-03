@@ -1,4 +1,4 @@
-package com.example.blelibrary.tool;
+package com.example.blelibrary.blelibrary.tool;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -50,16 +50,14 @@ public final class FormatConvert {
         return bytes;
     }
 
-    public static String ByteToStringbyte(byte[] data){
-        String sb = "";
-        for (int i=0;i<data.length;i++) {
-            if (data[i] >= 0x00 & data[i] < 0x10)
-                sb += '0';
-            sb = sb + String.format("%01X", data[i]);
-        }
-        return sb;
-    }
 
+    public static String bytesToHex(byte[] hashInBytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : hashInBytes) {
+            sb.append(String.format("%02X", b));
+        }
+        return sb.toString();
+    }
     public static byte[] InttoByte(int Num, int ByteSize) {
         byte[] bytes = ByteBuffer.allocate(ByteSize).putInt(Num).array();
         for (byte b : bytes) {
